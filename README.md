@@ -18,7 +18,16 @@ In the file config.json you can make changes to the base config found in src/con
 python src/classifier/text_classifier.py
 ```
 
-## To DO:
+## Pre-commits
+
+How to run the pre-commits using uv:
+
+```
+uv run pre-commit install
+uv run pre-commit run -a
+```
+
+## To Do:
 
 - Finish model inference
 - Implement Validation
