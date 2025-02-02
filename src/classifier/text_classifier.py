@@ -1,70 +1,76 @@
-from .config import Config
-from .load_tokenize_data import (
-    load_data,
-    serve_data,
-)
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
-import logger
-#https://huggingface.co/transformers/v3.0.2/model_doc/auto.html
-#https://huggingface.co/HuggingFaceTB/SmolLM2-135M
-#https://huggingface.co/docs/datasets/en/loading
-#https://huggingface.co/blog/Valerii-Knowledgator/multi-label-classification
-#https://github.com/hiver-py
-#https://huggingface.co/datasets/wykonos/movies
-#https://huggingface.co/datasets?modality=modality:text&size_categories=or:%28size_categories:100K%3Cn%3C1M%29&format=format:csv&sort=trending
-logger = logger.get_logger()
+from config import Config
+from load_tokenize_data import load_and_tokenize_data
+from utils import compute_metrics, load_config_from_json, load_model
+from datasets import Dataset, DatasetDict
+import transformers
+import logging
+import tyro
 
 
-def load_config_from_json(file_path: str = "config.json") -> Config:
-    with open(file_path, 'r') as f:
-        config_data = json.load(f)
-    return Config(**config_data)
+logger = logging.getLogger(__name__)
 
 
-def load_model(config: Config) -> AutoModelForSequenceClassification:
-    device = "auto"
-    AutoModelForSequenceClassification.from_pretrained()
+def run(
+        config: Config,
+        model: transformers.AutoModel,
+        tokenized_dataset: DatasetDict | Dataset
+        ) -> None:
+    # Set up training arguments
+    training_args = transformers.TrainingArguments(
+        output_dir=config.output_dir,
+        num_train_epochs=config.epochs,
+        per_device_train_batch_size=config.batch_size,
+        per_device_eval_batch_size=config.batch_size,
+        learning_rate=config.learning_rate,
+        weight_decay=config.weight_decay,
+        evaluation_strategy="epoch",
+        save_strategy="epoch",
+        load_best_model_at_end=True,
+        push_to_hub=False,
+        fp16=config.fp16,
+        gradient_accumulation_steps=config.gradient_accumulation_steps,
+    )
+
+    # Initialize Trainer
+    trainer = transformers.Trainer(
+        model=model,
+        args=training_args,
+        train_dataset=tokenized_dataset["train"],
+        # Change below to val after testing the code
+        eval_dataset=tokenized_dataset["test"],
+        compute_metrics=compute_metrics,
+    )
+
+    # Train the model
+    logger.info("Training model.")
+    if config.train_model:
+        trainer.train()
+
+    # Evaluate the model
+    logger.info("Running evaluation.")
+    eval_results = trainer.evaluate()
+    return trainer, eval_results
 
 
-def load_tokenizer(config: Config) -> AutoTokenizer:
-    device = "auto"
-    if config.pretrained_model:
-        return AutoTokenizer.from_pretrained(config.model)
-    else:
-        return AutoTokenizer(config.model)
-
-def train(config: Config):
-    pass
-
-
-def evaluate(config: Config):
-    pass
-
-
-def main(
-        config,
-        model=None,
-        tokenizer=None,
-        **kwargs
-):
-    config = load_config_from_json()
-    dataset = load_data(config)
-
+def main(config: Config, model=None):
+    tokenized_dataset = load_and_tokenize_data(config)
+    print(tokenized_dataset['train'])
+    if model is None:
+        model = load_model(config)
+    print(config.train_model)
     if config.train_model:
         logger.info("Training Model.")
-        if model is None:
-            model = load_model(config)
-        if tokenizer is None:
-            tokenizer = load_tokenizer(config)
-        train(
-            config, 
-            model=model, 
-            tokenizer=tokenizer, 
-            data=dataset
-        )
+        run(config, model, tokenized_dataset)
 
-    else:
-        evaluate(config)
 
 if __name__ == "__main__":
-    main()
+    config = load_config_from_json()
+    print(config)
+    main(config)
+
+# https://huggingface.co/transformers/v3.0.2/model_doc/auto.html
+# https://huggingface.co/HuggingFaceTB/SmolLM2-135M
+# https://huggingface.co/docs/datasets/en/loading
+# https://huggingface.co/blog/Valerii-Knowledgator/multi-label-classification
+# https://huggingface.co/datasets/wykonos/movies
+# https://huggingface.co/datasets?modality=modality:text&size_categories=or:%28size_categories:100K%3Cn%3C1M%29&format=format:csv&sort=trending
