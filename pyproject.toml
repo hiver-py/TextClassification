@@ -1,0 +1,33 @@
+[project]
+name = "llm"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "datasets>=3.2.0",
+    "logger>=1.4",
+    "pydantic>=2.10.6",
+    "scikit-learn>=1.6.1",
+    "torch>=2.5.1",
+    "transformers>=4.48.1",
+]
+
+[dependency-groups]
+dev = [
+    "faker>=35.0.0",
+    "nbstripout>=0.8.1",
+    "pre-commit>=4.1.0",
+    "pytest>=8.3.4",
+    "pytest-cov>=6.0.0",
+    "ruff>=0.9.3",
+]
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "I"
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length  = 120

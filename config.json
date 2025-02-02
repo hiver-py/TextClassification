@@ -1,0 +1,6 @@
+{
+    "classifier": "HuggingFaceTB/SmolLM2-135M",
+    "tokenizer": "HuggingFaceTB/SmolLM2-135M",
+    "dataset": "jhan21/amazon-food-reviews-dataset",
+    "target": "action"
+}
