@@ -10,11 +10,7 @@ import tyro
 logger = logging.getLogger(__name__)
 
 
-def run(
-        config: Config,
-        model: transformers.AutoModel,
-        tokenized_dataset: DatasetDict | Dataset
-        ) -> None:
+def run(config: Config, model: transformers.AutoModel, tokenized_dataset: DatasetDict | Dataset) -> None:
     # Set up training arguments
     training_args = transformers.TrainingArguments(
         output_dir=config.output_dir,
@@ -54,7 +50,7 @@ def run(
 
 def main(config: Config, model=None):
     tokenized_dataset = load_and_tokenize_data(config)
-    print(tokenized_dataset['train'])
+    print(tokenized_dataset["train"])
     if model is None:
         model = load_model(config)
     print(config.train_model)

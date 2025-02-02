@@ -1,9 +1,4 @@
-from sklearn.metrics import (
-    accuracy_score,
-    f1_score,
-    precision_score,
-    recall_score
-)
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 import transformers
 from config import Config
 import json
@@ -21,7 +16,7 @@ def compute_metrics(eval_pred: transformers.EvalPrediction, config: Config):
 
 
 def load_config_from_json(file_path: str = "config.json") -> Config:
-    with open(file_path, 'r') as f:
+    with open(file_path, "r") as f:
         config_data = json.load(f)
     return Config(**config_data)
 
@@ -29,15 +24,11 @@ def load_config_from_json(file_path: str = "config.json") -> Config:
 def load_model(config: Config) -> transformers.AutoModel:
     if config.pretrained_model:
         model = transformers.AutoModelForSequenceClassification.from_pretrained(
-            config.classifier,
-            num_labels=config.num_labels
+            config.classifier, num_labels=config.num_labels
         )
         return model
     else:
-        model = transformers.AutoModel(
-            config.classifier,
-            num_labels=config.num_labels
-        )
+        model = transformers.AutoModel(config.classifier, num_labels=config.num_labels)
         return model
 
 

@@ -19,7 +19,9 @@ def validate_model(model, config):
 
 
 def validate_tokenizer(tokenizer, config):
-    assert isinstance(tokenizer, transformers.PreTrainedTokenizer), "Tokenizer should be an instance of PreTrainedTokenizer"
+    assert isinstance(tokenizer, transformers.PreTrainedTokenizer), (
+        "Tokenizer should be an instance of PreTrainedTokenizer"
+    )
 
     if config.pretrained_tokenizer:
         expected_name = config.tokenizer if config.tokenizer else config.classifier

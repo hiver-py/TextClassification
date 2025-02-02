@@ -11,8 +11,8 @@ def load_data(config: Config) -> DatasetDict | Dataset:
         dataset = load_dataset(config.dataset)
         dataset = dataset.map(lambda x: x, batched=True, batch_size=100, keep_in_memory=True)
         print(dataset)
-        if 'label' in dataset['train'].features:
-            config.num_labels = len(set(dataset['train'][config.target]))
+        if "label" in dataset["train"].features:
+            config.num_labels = len(set(dataset["train"][config.target]))
         else:
             logger.warning("'label' column not found in dataset. Unable to set num_labels.")
         logger.info(f"Dataset loaded from Hugging Face Hub. Number of labels: {config.num_labels}")
@@ -27,15 +27,10 @@ def tokenize_data(dataset: Dataset, config: Config):
     tokenizer = load_tokenizer(config)
 
     if tokenizer.pad_token is None:
-        tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+        tokenizer.add_special_tokens({"pad_token": "[PAD]"})
 
     def tokenize_function(examples):
-        return tokenizer(
-            examples["text"],
-            padding="max_length",
-            truncation=True,
-            max_length=config.max_length
-        )
+        return tokenizer(examples["text"], padding="max_length", truncation=True, max_length=config.max_length)
 
     tokenized_datasets = dataset.map(tokenize_function, batched=True)
     return tokenized_datasets
@@ -43,13 +38,11 @@ def tokenize_data(dataset: Dataset, config: Config):
 
 def split_data(config, dataset):
     if len(dataset.keys()) == 1:
-        train_test = dataset['train'].train_test_split(test_size=0.2, seed=config.seed)
-        train_valid = train_test['train'].train_test_split(test_size=0.125, seed=config.seed)
-        split_dataset = DatasetDict({
-            'train': train_valid['train'],
-            'validation': train_valid['test'],
-            'test': train_test['test']
-        })
+        train_test = dataset["train"].train_test_split(test_size=0.2, seed=config.seed)
+        train_valid = train_test["train"].train_test_split(test_size=0.125, seed=config.seed)
+        split_dataset = DatasetDict(
+            {"train": train_valid["train"], "validation": train_valid["test"], "test": train_test["test"]}
+        )
         return split_dataset
 
 
