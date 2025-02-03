@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 def run(config: Config, model: transformers.AutoModel, tokenized_dataset: DatasetDict | Dataset) -> None:
     logger.info("Device:", config.device)
+
     # Set up training arguments
     training_args = transformers.TrainingArguments(
         output_dir=config.output_dir,
@@ -28,20 +29,20 @@ def run(config: Config, model: transformers.AutoModel, tokenized_dataset: Datase
         gradient_accumulation_steps=config.gradient_accumulation_steps,
     )
     logger.info("Training Arguments: ", training_args)
+
     # Initialize Trainer
     trainer = transformers.Trainer(
         model=model,
         args=training_args,
         train_dataset=tokenized_dataset["train"],
-        # Change below to val after testing the code
         eval_dataset=tokenized_dataset["val"],
         compute_metrics=lambda eval_pred: compute_metrics(eval_pred, config),
     )
-
     logger.info("Trainer: ", trainer)
+
     # Train the model
-    logger.info("Training model.")
     if config.train_model:
+        logger.info("Training model.")
         trainer.train()
 
     # Evaluate the model
@@ -52,23 +53,12 @@ def run(config: Config, model: transformers.AutoModel, tokenized_dataset: Datase
 
 def main(config: Config, model=None):
     tokenized_dataset = load_and_tokenize_data(config)
-    print(tokenized_dataset["train"])
     if model is None:
         model = load_model(config)
-    print(config.train_model)
-    if config.train_model:
-        logger.info("Training Model.")
-        run(config, model, tokenized_dataset)
+    run(config, model, tokenized_dataset)
 
 
 if __name__ == "__main__":
     config = load_config_from_json()
-    print(config)
+    logger.info("Config: ", config)
     main(config)
-
-# https://huggingface.co/transformers/v3.0.2/model_doc/auto.html
-# https://huggingface.co/HuggingFaceTB/SmolLM2-135M
-# https://huggingface.co/docs/datasets/en/loading
-# https://huggingface.co/blog/Valerii-Knowledgator/multi-label-classification
-# https://huggingface.co/datasets/wykonos/movies
-# https://huggingface.co/datasets?modality=modality:text&size_categories=or:%28size_categories:100K%3Cn%3C1M%29&format=format:csv&sort=trending
