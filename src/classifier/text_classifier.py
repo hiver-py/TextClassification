@@ -4,13 +4,14 @@ from utils import compute_metrics, load_config_from_json, load_model
 from datasets import Dataset, DatasetDict
 import transformers
 import logging
-import tyro
 
 
+logging.basicConfig(filename="text_classifier.log", level=logging.WARNING)
 logger = logging.getLogger(__name__)
 
 
 def run(config: Config, model: transformers.AutoModel, tokenized_dataset: DatasetDict | Dataset) -> None:
+    logger.info("Device:", config.device)
     # Set up training arguments
     training_args = transformers.TrainingArguments(
         output_dir=config.output_dir,
@@ -19,24 +20,25 @@ def run(config: Config, model: transformers.AutoModel, tokenized_dataset: Datase
         per_device_eval_batch_size=config.batch_size,
         learning_rate=config.learning_rate,
         weight_decay=config.weight_decay,
-        evaluation_strategy="epoch",
+        eval_strategy="epoch",
         save_strategy="epoch",
         load_best_model_at_end=True,
         push_to_hub=False,
         fp16=config.fp16,
         gradient_accumulation_steps=config.gradient_accumulation_steps,
     )
-
+    logger.info("Training Arguments: ", training_args)
     # Initialize Trainer
     trainer = transformers.Trainer(
         model=model,
         args=training_args,
         train_dataset=tokenized_dataset["train"],
         # Change below to val after testing the code
-        eval_dataset=tokenized_dataset["test"],
-        compute_metrics=compute_metrics,
+        eval_dataset=tokenized_dataset["val"],
+        compute_metrics=lambda eval_pred: compute_metrics(eval_pred, config),
     )
 
+    logger.info("Trainer: ", trainer)
     # Train the model
     logger.info("Training model.")
     if config.train_model:

@@ -3,14 +3,13 @@ from utils import load_tokenizer
 from config import Config
 import logging
 
+
 logger = logging.getLogger(__name__)
 
 
 def load_data(config: Config) -> DatasetDict | Dataset:
     try:
         dataset = load_dataset(config.dataset)
-        dataset = dataset.map(lambda x: x, batched=True, batch_size=100, keep_in_memory=True)
-        print(dataset)
         if "label" in dataset["train"].features:
             config.num_labels = len(set(dataset["train"][config.target]))
         else:
@@ -27,10 +26,10 @@ def tokenize_data(dataset: Dataset, config: Config):
     tokenizer = load_tokenizer(config)
 
     if tokenizer.pad_token is None:
-        tokenizer.add_special_tokens({"pad_token": "[PAD]"})
+        tokenizer.pad_token = tokenizer.eos_token
 
     def tokenize_function(examples):
-        return tokenizer(examples["text"], padding="max_length", truncation=True, max_length=config.max_length)
+        return tokenizer(examples["text"], padding=True, truncation=True)
 
     tokenized_datasets = dataset.map(tokenize_function, batched=True)
     return tokenized_datasets
@@ -51,5 +50,4 @@ def load_and_tokenize_data(config: Config):
     tokenized_data = tokenize_data(dataset, config)
     if len(tokenized_data.keys()) == 1:
         tokenized_data = split_data(tokenized_data)
-    print(tokenized_data)
     return tokenized_data
