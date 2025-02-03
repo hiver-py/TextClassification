@@ -55,6 +55,7 @@ def main(config: Config, model=None):
     tokenized_dataset = load_and_tokenize_data(config)
     if model is None:
         model = load_model(config)
+    exit()
     run(config, model, tokenized_dataset)
 
 

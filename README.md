@@ -29,10 +29,7 @@ uv run pre-commit run -a
 
 ## To Do:
 
-- Finish model inference
-- Implement Validation
-- Add Unit Tests & end-to-end testing.
-- Support for mlflow (maybe)?
+- Add Tests
 
 
 ## Changelog
