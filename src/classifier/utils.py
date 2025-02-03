@@ -26,9 +26,13 @@ def load_model(config: Config) -> transformers.AutoModel:
         model = transformers.AutoModelForSequenceClassification.from_pretrained(
             config.classifier, num_labels=config.num_labels
         )
+        if model.config.pad_token_id is None:
+            model.config.pad_token_id = model.config.eos_token_id
         return model
     else:
         model = transformers.AutoModel(config.classifier, num_labels=config.num_labels)
+        if model.config.pad_token_id is None:
+            model.config.pad_token_id = model.config.eos_token_id
         return model
 
 
